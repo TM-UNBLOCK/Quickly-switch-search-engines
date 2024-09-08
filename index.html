@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>TM-SEARCH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            text-align: center;
+            transition: background-color 0.5s, color 0.5s;
+        }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: #4a90e2;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        h1 {
+            margin-top: 70px;
+            font-size: 48px;
+            font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        .menu {
+            position: absolute;
+            top: 70px;
+            left: 10px;
+            z-index: 10;
+        }
+        .menu-btn {
+            background: none;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .menu-content {
+            display: none;
+            position: absolute;
+            top: 50px;
+            left: 0;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(-10px);
+            flex-direction: column;
+        }
+        .menu-content.show {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .menu-content a {
+            display: block;
+            padding: 10px 20px;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .menu-content a:hover {
+            background-color: #f0f0f0;
+        }
+        .search-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .search-box {
+            width: 90%;
+            max-width: 600px;
+            padding: 15px;
+            font-size: 18px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            margin-bottom: 15px;
+            transition: box-shadow 0.3s;
+        }
+        .search-box:focus {
+            outline: none;
+            box-shadow: 0 0 5px #4a90e2;
+        }
+        .voice-search-button, .history-button, .dark-mode-button, .favorite-button {
+            padding: 15px 30px;
+            font-size: 18px;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 24px;
+            background-color: #4a90e2;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .voice-search-button:hover, .history-button:hover, .dark-mode-button:hover, .favorite-button:hover {
+            background-color: #357ab8;
+            transform: translateY(-2px);
+        }
+        .shortcut-button {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 10px;
+            width: 150px;
+            font-size: 16px;
+            color: #333;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .shortcut-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .dark-mode .search-container,
+        .dark-mode .about-container,
+        .dark-mode .usage-container {
+            background-color: #1e1e1e;
+            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+        }
+        .dark-mode .search-box {
+            border-color: #444;
+            background-color: #333;
+            color: #fff;
+        }
+        .dark-mode .voice-search-button {
+            background-color: #1f1f1f;
+            color: #ffffff;
+        }
+        .dark-mode .shortcut-button {
+            background-color: #444;
+            color: #ffffff;
+            border-color: #555;
+        }
+        .about-container, .usage-container {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        .github-button {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.3s;
+            margin-top: 20px;
+            display: inline-block;
+        }
+        .github-button:hover {
+            background-color: #444;
+            transform: scale(1.05);
+        }
+        .button-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .button-container input {
+            margin: 0 10px;
+        }
+        /* お気に入りセクションのスタイル */
+        .favorites {
+            margin-top: 20px;
+            background-color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: none; /* 初期は非表示 */
+            text-align: left; /* テキストを左寄せ */
+        }
+        .favorite-item {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            display: flex;  /* フレックスボックスを使用 */
+            justify-content: space-between; /* アイテム間でスペースを分ける */
+            align-items: center; /* センタリング */
+        }
+        .delete-favorite {
+            background: none;
+            border: none;
+            color: #ff4d4d;
+            cursor: pointer;
+        }
+        /* 使い方セクションのスタイル */
+        .usage-statement {
+            margin-top: 20px; /* 上に余白を追加 */
+        }
+        .dark-mode .usage-statement {
+            color: #ffffff; /* ダークモード時にテキスト色を変更 */
+        }
+    </style>
+</head>
+<body onclick="closeMenu(event)">
+
+    <div class="header" onclick="goHome()">
+        <h1>TM-SEARCH</h1>
+    </div>
+
+    <div class="menu">
+        <button class="menu-btn" onclick="toggleMenu(event)">&#9776;</button>
+        <div class="menu-content" id="menuContent">
+            <a href="#" onclick="closeMenu(); showHome()">最近の検索</a>
+            <a href="#" onclick="closeMenu(); showAbout()">このアプリについて</a>
+            <a href="#" onclick="closeMenu(); showUsage()">使い方</a>
+            <a href="#" onclick="closeMenu(); showFavorites()">お気に入り</a> <!-- お気に入りのリンク -->
+        </div>
+    </div>
+
+    <h1>TM-SEARCH</h1>
+    <div class="search-container">
+        <input type="text" id="searchQuery" class="search-box" placeholder="検索..." required>
+        <br>
+        <select id="searchEngine" class="search-box">
+            <option value="google">Google</option>
+            <option value="bing">Bing</option>
+            <option value="duckduckgo">DuckDuckGo</option>
+            <option value="yahoo">Yahoo</option>
+        </select>
+        <br>
+        <input type="button" class="voice-search-button" value="音声検索" onclick="startVoiceSearch()">
+        <input type="button" class="favorite-button" value="お気に入りに追加" onclick="addToFavorites()">
+    </div>
+
+    <div class="shortcuts">
+        <h2>最近の検索</h2>
+        <div id="history"></div>
+        <div class="button-container">
+            <input type="button" class="history-button" value="履歴をクリア" onclick="clearHistory()" id="clearHistoryButton"> <!-- 履歴クリアボタンの配置を変更 -->
+        </div>
+        <h2>ショートカット</h2>
+        <a href="https://www.google.com" class="shortcut-button">Google</a>
+        <a href="https://www.bing.com" class="shortcut-button">Bing</a>
+        <a href="https://www.duckduckgo.com" class="shortcut-button">DuckDuckGo</a>
+        <a href="https://www.yahoo.co.jp" class="shortcut-button">Yahoo</a>
+    </div>
+
+    <div class="button-container">
+        <input type="button" class="dark-mode-button" value="ダークモード切替" onclick="toggleDarkMode()" id="darkModeButton">
+    </div>
+
+    <div class="favorites" id="favoritesContainer">
+        <h2>お気に入り</h2>
+        <select id="favoriteSearchEngine" class="search-box" onchange="updateFavoriteSearchEngine()">
+            <option value="google">Google</option>
+            <option value="bing">Bing</option>
+            <option value="duckduckgo">DuckDuckGo</option>
+            <option value="yahoo">Yahoo</option>
+        </select>
+        <div id="favorites"></div>
+    </div>
+
+    <div class="about-container" id="aboutContainer">
+        <h2>このアプリについて</h2>
+        <p>TM-SEARCHは、さまざまな検索エンジンを利用するための便利なアプリです。</p>
+        <p>ユーザーは検索履歴を管理し、音声検索を利用可能です。また、ダークモードに切り替えることもできます。</p>
+        <p>今後も機能を追加し、より使いやすいアプリを目指していきます。</p>
+        <a href="https://github.com/TM-UNBLOCK" class="github-button" target="_blank">GitHubプロファイル</a>
+    </div>
+
+    <div class="usage-container" id="usageContainer">
+        <h2>使い方</h2>
+        <p class="usage-statement">このアプリは、簡単にさまざまな検索エンジンを使って情報を探すためのツールです。</p>
+        <h3>基本的な使い方:</h3>
+        <ol>
+            <li>検索ボックスに調べたいキーワードを入力します。</li>
+            <li>使用したい検索エンジンを選択します（デフォルトはGoogleです）。</li>
+            <li>音声検索ボタンを使用して検索を実行します。</li>
+        </ol>
+        <h3>お気に入りの使用:</h3>
+        <ol>
+            <li>検索結果をお気に入りに追加するには、「お気に入りに追加」ボタンをクリックします。</li>
+            <li>お気に入りタブに移動し、追加された項目をタッチすることで、その検索結果を再度表示できます。</li>
+            <li>お気に入りから項目を削除するには、「削除」ボタンをクリックします。</li>
+        </ol>
+        <h3>履歴のクリア:</h3>
+        <p>検索履歴は「履歴をクリア」ボタンでいつでも削除できます。</p>
+    </div>
+
+    <script>
+        const historyContainer = document.getElementById('history');
+        const favoritesContainer = document.getElementById('favorites');
+        let searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
+        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+
+        function renderHistory() {
+            historyContainer.innerHTML = '';
+            searchHistory.forEach(query => {
+                const button = document.createElement('button');
+                button.textContent = query;
+                button.onclick = () => performSearch(query);
+                button.style.margin = '5px';
+                button.style.padding = '10px';
+                button.style.borderRadius = '12px';
+                button.style.border = '1px solid #ddd';
+                button.style.backgroundColor = '#ffffff';
+                historyContainer.appendChild(button);
+            });
+        }
+
+        function renderFavorites() {
+            favoritesContainer.innerHTML = '';
+            favorites.forEach(query => {
+                const favoriteDiv = document.createElement('div');
+                favoriteDiv.classList.add('favorite-item');
+
+                // 検索クエリをクリックしたらその検索結果に飛ぶ
+                const favoriteText = document.createElement('span');
+                favoriteText.textContent = query;
+                favoriteText.onclick = () => performFavoriteSearch(query);
+                favoriteDiv.appendChild(favoriteText);
+
+                // お気に入りを削除するボタン
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = '削除';
+                deleteButton.classList.add('delete-favorite');
+                deleteButton.onclick = (event) => {
+                    event.stopPropagation();  // 検索をトリガーしないように
+                    removeFromFavorites(query);
+                };
+                favoriteDiv.appendChild(deleteButton);
+                favoritesContainer.appendChild(favoriteDiv);
+            });
+
+            // お気に入りが存在しない場合はメッセージを表示
+            if (favorites.length === 0) {
+                favoritesContainer.innerHTML = '<div>お気に入りはまだありません。</div>';
+            }
+
+            favoritesContainer.style.display = favorites.length ? 'block' : 'none';
+        }
+
+        function performSearch(query) {
+            if (!query) {
+                query = document.getElementById('searchQuery').value;
+            }
+            const engine = document.getElementById('searchEngine').value;
+            let searchUrl = '';
+            if (engine === 'google') {
+                searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+            } else if (engine === 'bing') {
+                searchUrl = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
+            } else if (engine === 'duckduckgo') {
+                searchUrl = 'https://www.duckduckgo.com/?q=' + encodeURIComponent(query);
+            } else if (engine === 'yahoo') {
+                searchUrl = 'https://search.yahoo.com/search?p=' + encodeURIComponent(query);
+            }
+
+            if (!searchHistory.includes(query) && query) {
+                searchHistory.push(query);
+                localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+                renderHistory();
+            }
+            window.location.href = searchUrl;
+        }
+
+        function performFavoriteSearch(query) {
+            const engine = document.getElementById('favoriteSearchEngine').value;
+            let searchUrl = '';
+            if (engine === 'google') {
+                searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+            } else if (engine === 'bing') {
+                searchUrl = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
+            } else if (engine === 'duckduckgo') {
+                searchUrl = 'https://www.duckduckgo.com/?q=' + encodeURIComponent(query);
+            } else if (engine === 'yahoo') {
+                searchUrl = 'https://search.yahoo.com/search?p=' + encodeURIComponent(query);
+            }
+            window.location.href = searchUrl;
+        }
+
+        function addToFavorites() {
+            const query = document.getElementById('searchQuery').value;
+            if (query && !favorites.includes(query)) {
+                favorites.push(query);
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+                renderFavorites();
+                alert('お気に入りに追加しました。');
+            } else if (favorites.includes(query)) {
+                alert('すでにお気に入りに追加されています。');
+            } else {
+                alert('検索クエリが空です。');
+            }
+        }
+
+        function removeFromFavorites(query) {
+            favorites = favorites.filter(favorite => favorite !== query);
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            renderFavorites();
+        }
+
+        function clearHistory() {
+            searchHistory = [];
+            localStorage.removeItem('searchHistory');
+            renderHistory();
+        }
+
+        function startVoiceSearch() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'ja-JP';
+            recognition.start();
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('searchQuery').value = transcript;
+                performSearch(transcript);
+            };
+            recognition.onerror = (event) => {
+                alert('音声認識エラー: ' + event.error);
+            };
+        }
+
+        function goHome() {
+            document.getElementById('searchQuery').value = '';
+            const engine = document.getElementById('searchEngine').value;
+            location.href = 'index.html';
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        function toggleMenu(event) {
+            const menu = document.getElementById('menuContent');
+            const menuButton = document.querySelector('.menu-btn');
+            menu.classList.toggle('show');
+            menuButton.classList.toggle('rotate');
+
+            event.stopPropagation();
+        }
+
+        function closeMenu(event) {
+            const menu = document.getElementById('menuContent');
+            if (menu.classList.contains('show')) {
+                menu.classList.remove('show');
+                document.querySelector('.menu-btn').classList.remove('rotate');
+            }
+        }
+
+        function showHome() {
+            document.getElementById('usageContainer').style.display = 'block';
+            document.getElementById('aboutContainer').style.display = 'none';
+            document.querySelector('.search-container').style.display = 'block';
+            document.querySelector('.shortcuts').style.display = 'block';
+            document.getElementById('clearHistoryButton').style.display = 'block';
+            document.getElementById('darkModeButton').style.display = 'block';
+            document.getElementById('favoritesContainer').style.display = 'none'; // お気に入り非表示
+        }
+
+        function showAbout() {
+            document.getElementById('usageContainer').style.display = 'none';
+            document.getElementById('aboutContainer').style.display = 'block';
+            document.querySelector('.search-container').style.display = 'none';
+            document.querySelector('.shortcuts').style.display = 'none';
+            document.getElementById('clearHistoryButton').style.display = 'none';
+            document.getElementById('darkModeButton').style.display = 'none';
+            document.getElementById('favoritesContainer').style.display = 'none'; // お気に入り非表示
+        }
+
+        function showUsage() {
+            document.getElementById('aboutContainer').style.display = 'none';
+            document.getElementById('usageContainer').style.display = 'block';
+            document.querySelector('.search-container').style.display = 'none';
+            document.querySelector('.shortcuts').style.display = 'none';
+            document.getElementById('clearHistoryButton').style.display = 'none';
+            document.getElementById('darkModeButton').style.display = 'none';
+            document.getElementById('favoritesContainer').style.display = 'none'; // お気に入り非表示
+        }
+
+        function showFavorites() {
+            document.querySelector('.search-container').style.display = 'none';
+            document.querySelector('.shortcuts').style.display = 'none';
+            document.getElementById('aboutContainer').style.display = 'none';
+            document.getElementById('usageContainer').style.display = 'none';
+            document.getElementById('clearHistoryButton').style.display = 'none';
+            document.getElementById('darkModeButton').style.display = 'none';
+            document.getElementById('favoritesContainer').style.display = 'block'; // お気に入り表示
+            renderFavorites(); // お気に入りを描画
+        }
+
+        // お気に入りの検索エンジンを更新する関数
+        function updateFavoriteSearchEngine() {
+            const selectedEngine = document.getElementById('favoriteSearchEngine').value;
+            if (favorites.length) {
+                renderFavorites(); // 再描画しておく
+            }
+        }
+
+        // 初期表示
+        showHome();
+        renderHistory();
+        renderFavorites();
+    </script>
+</body>
+</html>
