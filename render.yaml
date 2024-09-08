@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: TM searcher
+    env: static
+    staticPublishPath: ./
+    buildCommand: ""
